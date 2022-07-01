@@ -21,6 +21,12 @@ void Robot::trackerInit(int n, cv::Rect bbox, cv::Mat& frame)
         tracker = cv::TrackerCSRT::create();
     if (trackerType == "DaSiamRPN")
         tracker = cv::TrackerDaSiamRPN::create();
+
+    bbox.x         -= bbox.width * 0.1;
+    bbox.y         -= bbox.height * 0.1;
+    bbox.width     += bbox.height * 0.2;
+    bbox.height    += bbox.width * 0.2;
+
     tracker->init(frame, bbox);
 }
 
@@ -34,13 +40,20 @@ void Robot::initPosition(cv::Rect bbox, cv::Mat& frame)
 
 cv::Rect Robot::trackRobot(cv::Mat& frame)
 {
+    int dW = last_position.width * 0.1;
+    int dH = last_position.height * 0.1;
+
+    last_position.x         -= dW;
+    last_position.y         -= dH;
+    last_position.width     += dW * 2;
+    last_position.height    += dH * 2;
+
     bool ok = tracker->update(frame, last_position);
 
-    //last_position.width = last_position.height;
-    //last_position.height = last_position.width;
-    // 
-    //last_position.x = last_position.x;
-    //last_position.y = last_position.y;
+    last_position.x         += dW;
+    last_position.y         += dH;
+    last_position.width     -= dW * 2;
+    last_position.height    -= dH * 2;
 
     if (ok)
     {

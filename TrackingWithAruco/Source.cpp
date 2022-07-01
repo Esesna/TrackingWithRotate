@@ -88,11 +88,11 @@ int main(int argc, char** argv)
     if (!parser.has("image")) {
         video.open(outputFile + ".avi", VideoWriter::fourcc('M', 'J', 'P', 'G'), 28, Size(cap.get(CAP_PROP_FRAME_WIDTH), cap.get(CAP_PROP_FRAME_HEIGHT)));
     }
-    videoid0.open(outputFile + "_0.avi", VideoWriter::fourcc('M', 'J', 'P', 'G'), 28, Size(cap.get(CAP_PROP_FRAME_WIDTH), cap.get(CAP_PROP_FRAME_HEIGHT)));
-    videoid1.open(outputFile + "_1.avi", VideoWriter::fourcc('M', 'J', 'P', 'G'), 28, Size(cap.get(CAP_PROP_FRAME_WIDTH), cap.get(CAP_PROP_FRAME_HEIGHT)));
-    videoid2.open(outputFile + "_2.avi", VideoWriter::fourcc('M', 'J', 'P', 'G'), 28, Size(cap.get(CAP_PROP_FRAME_WIDTH), cap.get(CAP_PROP_FRAME_HEIGHT)));
-    videoid3.open(outputFile + "_3.avi", VideoWriter::fourcc('M', 'J', 'P', 'G'), 28, Size(cap.get(CAP_PROP_FRAME_WIDTH), cap.get(CAP_PROP_FRAME_HEIGHT)));
-    videoid4.open(outputFile + "_4.avi", VideoWriter::fourcc('M', 'J', 'P', 'G'), 28, Size(cap.get(CAP_PROP_FRAME_WIDTH), cap.get(CAP_PROP_FRAME_HEIGHT)));
+    videoid0.open(outputFile + "_0.avi", VideoWriter::fourcc('M', 'J', 'P', 'G'), 28, Size(300, 300));
+    videoid1.open(outputFile + "_1.avi", VideoWriter::fourcc('M', 'J', 'P', 'G'), 28, Size(300, 300));
+    videoid2.open(outputFile + "_2.avi", VideoWriter::fourcc('M', 'J', 'P', 'G'), 28, Size(300, 300));
+    videoid3.open(outputFile + "_3.avi", VideoWriter::fourcc('M', 'J', 'P', 'G'), 28, Size(300, 300));
+    videoid4.open(outputFile + "_4.avi", VideoWriter::fourcc('M', 'J', 'P', 'G'), 28, Size(300, 300));
 
     // Create a window
     static const string kWinName = "Augmented Reality using Aruco markers in OpenCV";
@@ -163,6 +163,26 @@ int main(int argc, char** argv)
             else
             {
                 rectangle(outputImage, robots[i_robot].getPosition(), robots[i_robot].ColorDetect, 2, 1);
+                cv::Mat outROI = cv::Mat(frame, robots[i_robot].getPosition());
+                cv::resize(outROI, outROI, cv::Size(300,300));
+                switch (robots[i_robot].getId())
+                {
+                case 0:
+                    videoid0.write(outROI);
+                    break;
+                case 1:
+                    videoid1.write(outROI);
+                    break;
+                case 2:
+                    videoid2.write(outROI);
+                    break;
+                case 3:
+                    videoid3.write(outROI);
+                    break;
+                case 4:
+                    videoid4.write(outROI);
+                    break;
+                }
             }
         }
         
@@ -180,6 +200,12 @@ int main(int argc, char** argv)
 
     cap.release();
     if (!parser.has("image")) video.release();
+
+    videoid0.release();
+    videoid1.release();
+    videoid2.release();
+    videoid3.release();
+    videoid4.release();
 
     return 0;
 }

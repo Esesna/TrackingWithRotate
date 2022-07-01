@@ -41,6 +41,13 @@ int main(int argc, char** argv)
     string str, outputFile;
     VideoCapture cap;
     VideoWriter video;
+
+    VideoWriter videoid0;
+    VideoWriter videoid1;
+    VideoWriter videoid2;
+    VideoWriter videoid3;
+    VideoWriter videoid4;
+
     Mat frame, blob;
     
     Mat im_src = imread("new_scenery.jpg");
@@ -65,7 +72,7 @@ int main(int argc, char** argv)
             ifstream ifile(str);
             if (!ifile) throw("error");
             cap.open(str);
-            str.replace(str.end()-4, str.end(), "_ar_out_cpp.avi");
+            str.replace(str.end()-4, str.end(), "_ar_out_cpp");
             outputFile = str;
         }
         // Open the webcaom
@@ -79,14 +86,19 @@ int main(int argc, char** argv)
     
     // Get the video writer initialized to save the output video
     if (!parser.has("image")) {
-        video.open(outputFile, VideoWriter::fourcc('M','J','P','G'), 28, Size(cap.get(CAP_PROP_FRAME_WIDTH), cap.get(CAP_PROP_FRAME_HEIGHT)));
+        video.open(outputFile + ".avi", VideoWriter::fourcc('M', 'J', 'P', 'G'), 28, Size(cap.get(CAP_PROP_FRAME_WIDTH), cap.get(CAP_PROP_FRAME_HEIGHT)));
     }
-    
+    videoid0.open(outputFile + "_0.avi", VideoWriter::fourcc('M', 'J', 'P', 'G'), 28, Size(cap.get(CAP_PROP_FRAME_WIDTH), cap.get(CAP_PROP_FRAME_HEIGHT)));
+    videoid1.open(outputFile + "_1.avi", VideoWriter::fourcc('M', 'J', 'P', 'G'), 28, Size(cap.get(CAP_PROP_FRAME_WIDTH), cap.get(CAP_PROP_FRAME_HEIGHT)));
+    videoid2.open(outputFile + "_2.avi", VideoWriter::fourcc('M', 'J', 'P', 'G'), 28, Size(cap.get(CAP_PROP_FRAME_WIDTH), cap.get(CAP_PROP_FRAME_HEIGHT)));
+    videoid3.open(outputFile + "_3.avi", VideoWriter::fourcc('M', 'J', 'P', 'G'), 28, Size(cap.get(CAP_PROP_FRAME_WIDTH), cap.get(CAP_PROP_FRAME_HEIGHT)));
+    videoid4.open(outputFile + "_4.avi", VideoWriter::fourcc('M', 'J', 'P', 'G'), 28, Size(cap.get(CAP_PROP_FRAME_WIDTH), cap.get(CAP_PROP_FRAME_HEIGHT)));
+
     // Create a window
     static const string kWinName = "Augmented Reality using Aruco markers in OpenCV";
     static const string inWinName = "inWinName";
     namedWindow(kWinName, WINDOW_NORMAL);
-    namedWindow(inWinName, WINDOW_NORMAL);
+    //namedWindow(inWinName, WINDOW_NORMAL);
     // Process frames.
     std::vector<Robot> robots;
     auto time_point_1 = std::chrono::high_resolution_clock::now();
@@ -102,7 +114,7 @@ int main(int argc, char** argv)
             waitKey(3000);
             break;
         }
-        imshow(inWinName, frame);
+        //imshow(inWinName, frame);
         vector<int> markerIds;
             
         // Load the dictionary that was used to generate the markers.

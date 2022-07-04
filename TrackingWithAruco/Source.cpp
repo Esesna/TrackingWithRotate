@@ -98,11 +98,13 @@ int main(int argc, char** argv)
     static const string kWinName = "Augmented Reality using Aruco markers in OpenCV";
     static const string inWinName = "inWinName";
     namedWindow(kWinName, WINDOW_NORMAL);
-    //namedWindow(inWinName, WINDOW_NORMAL);
+    namedWindow(inWinName, WINDOW_NORMAL);
     // Process frames.
     std::vector<Robot> robots;
     auto time_point_1 = std::chrono::high_resolution_clock::now();
     auto time_point_2 = std::chrono::high_resolution_clock::now();
+    bool first = true;
+    int countFrames = 0;
     while (waitKey(1) < 0)
     {
         // get frame from the video
@@ -124,13 +126,16 @@ int main(int argc, char** argv)
         // Initialize the detector parameters using default values
         Ptr<DetectorParameters> parameters = DetectorParameters::create();
         // Detect the markers in the image
-
-        detectMarkers(frame, dictionary, markerCorners, markerIds, parameters, rejectedCandidates);
-
+        if (countFrames % 30 == 0)
+        {
+            detectMarkers(frame, dictionary, markerCorners, markerIds, parameters, rejectedCandidates);
+        }
+        countFrames++;
         for (int i_robot = 0; i_robot < robots.size(); i_robot++)
         {
             cv::Rect tresh = robots[i_robot].trackRobot(frame);
         }
+        cv::imshow(inWinName, frame);
 
         //for (int i_robot = 0; i_robot < robots.size(); i_robot++)
         //{
@@ -162,7 +167,25 @@ int main(int argc, char** argv)
             }
             else
             {
-                rectangle(outputImage, robots[i_robot].getPosition(), robots[i_robot].ColorDetect, 2, 1);
+                cv::Rect last_position = robots[i_robot].getPosition();
+
+                //int dW = last_position.width * 0.3;
+                //int dH = last_position.height * 0.3;
+                //last_position.x -= dW;
+                //last_position.y -= dH;
+                //last_position.width += dW * 2;
+                //last_position.height += dH * 2;
+
+                rectangle(outputImage, last_position, robots[i_robot].ColorDetect, 2, 1);
+
+                cv::putText(outputImage, //target image
+                    std::to_string(robots[i_robot].outFi), //text
+                    cv::Point(last_position.x, last_position.y - 10), //top-left position
+                    cv::FONT_HERSHEY_DUPLEX,
+                    0.5,
+                    CV_RGB(118, 185, 0), //font color
+                    2);
+
                 cv::Mat outROI = cv::Mat(frame, robots[i_robot].getPosition());
                 cv::resize(outROI, outROI, cv::Size(300,300));
                 switch (robots[i_robot].getId())
@@ -189,13 +212,12 @@ int main(int argc, char** argv)
         time_point_2 = std::chrono::high_resolution_clock::now();
         float time_for_detect = std::chrono::duration_cast<std::chrono::milliseconds>(time_point_2 - time_point_1).count();
         float FPS = 1000 / time_for_detect;
-        putText(outputImage, "FPS: " + std::to_string(FPS), cv::Point(100, 80), cv::FONT_HERSHEY_SIMPLEX, 0.75, cv::Scalar(0, 0, 255), 2);
+        cv::putText(outputImage, "FPS: " + std::to_string(FPS), cv::Point(100, 80), cv::FONT_HERSHEY_SIMPLEX, 0.75, cv::Scalar(0, 0, 255), 2);
         time_point_1 = std::chrono::high_resolution_clock::now();
         
         if (parser.has("image")) imwrite(outputFile, outputImage);
         else video.write(outputImage);
-        imshow(kWinName, outputImage);
-
+        cv::imshow(kWinName, outputImage);
     }
 
     cap.release();

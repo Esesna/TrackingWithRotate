@@ -98,7 +98,7 @@ int main(int argc, char** argv)
     static const string kWinName = "Augmented Reality using Aruco markers in OpenCV";
     static const string inWinName = "inWinName";
     namedWindow(kWinName, WINDOW_NORMAL);
-    namedWindow(inWinName, WINDOW_NORMAL);
+    //namedWindow(inWinName, WINDOW_NORMAL);
     // Process frames.
     std::vector<Robot> robots;
     auto time_point_1 = std::chrono::high_resolution_clock::now();
@@ -117,8 +117,8 @@ int main(int argc, char** argv)
             break;
         }
         //imshow(inWinName, frame);
+
         vector<int> markerIds;
-            
         // Load the dictionary that was used to generate the markers.
         Ptr<Dictionary> dictionary = getPredefinedDictionary(DICT_4X4_50);
         // Declare the vectors that would contain the detected marker corners and the rejected marker candidates
@@ -126,22 +126,23 @@ int main(int argc, char** argv)
         // Initialize the detector parameters using default values
         Ptr<DetectorParameters> parameters = DetectorParameters::create();
         // Detect the markers in the image
+
         if (countFrames % 30 == 0)
         {
-            detectMarkers(frame, dictionary, markerCorners, markerIds, parameters, rejectedCandidates);
+            detectMarkers(frame, dictionary, markerCorners, markerIds);//), rejectedCandidates);
         }
         countFrames++;
         for (int i_robot = 0; i_robot < robots.size(); i_robot++)
         {
-            cv::Rect tresh = robots[i_robot].trackRobot(frame);
+            cv::Rect tresh = robots[i_robot].trackRobot(frame, outputImage);
         }
-        cv::imshow(inWinName, frame);
+        //cv::imshow(inWinName, frame);
 
         //for (int i_robot = 0; i_robot < robots.size(); i_robot++)
         //{
         //    rectangle(outputImage, robots[i_robot].getPosition(), robots[i_robot].ColorDetect, 2, 1);
         //}
-
+        //cv::drawFrameAxes(outputImage, cameraMatrix, distCoeffs, rvecs[0], tvecs[0], 0.01);
         for (int i_id = 0; i_id < markerIds.size(); i_id++)
         {
             bool newRobot = true;
@@ -150,15 +151,16 @@ int main(int argc, char** argv)
                 if (robots[i_robot].getId() == markerIds[i_id])
                 {
                     newRobot = false;
-                    robots[i_robot].initPosition(convertCornersToRect(markerCorners[i_id]) , frame);
+                    robots[i_robot].initPosition(convertCornersToRect(markerCorners[i_id]) , frame, markerCorners[i_id]);
+                    
                 }
             }
             if (newRobot)
             {
-                robots.push_back(Robot(markerIds[i_id], 1, convertCornersToRect(markerCorners[i_id]), frame));
+                robots.push_back(Robot(markerIds[i_id], 1, convertCornersToRect(markerCorners[i_id]), frame, markerCorners[i_id]));
             }
         }
-
+        vector<vector<Point2f>> markerCornersRobots;
         for (int i_robot = 0; i_robot < robots.size(); i_robot++)
         {
             if (robots[i_robot].ColorDetect == cv::Scalar(0, 0, 255))
@@ -167,24 +169,17 @@ int main(int argc, char** argv)
             }
             else
             {
+
+                vector<Point2f> coordAngle = robots[i_robot].p0;
+                markerCornersRobots.push_back(coordAngle);
+
                 cv::Rect last_position = robots[i_robot].getPosition();
 
-                //int dW = last_position.width * 0.3;
-                //int dH = last_position.height * 0.3;
-                //last_position.x -= dW;
-                //last_position.y -= dH;
-                //last_position.width += dW * 2;
-                //last_position.height += dH * 2;
-
-                rectangle(outputImage, last_position, robots[i_robot].ColorDetect, 2, 1);
-
-                cv::putText(outputImage, //target image
-                    std::to_string(robots[i_robot].outFi), //text
-                    cv::Point(last_position.x, last_position.y - 10), //top-left position
-                    cv::FONT_HERSHEY_DUPLEX,
-                    0.5,
-                    CV_RGB(118, 185, 0), //font color
-                    2);
+                //rectangle(outputImage, last_position, robots[i_robot].ColorDetect, 2, 1);
+                for (int p_angle = 0; p_angle < coordAngle.size(); p_angle++)
+                {
+                    line(outputImage, coordAngle[p_angle], coordAngle[(p_angle + 1) % coordAngle.size()], robots[i_robot].ColorDetect, 2);
+                }
 
                 cv::Mat outROI = cv::Mat(frame, robots[i_robot].getPosition());
                 cv::resize(outROI, outROI, cv::Size(300,300));
@@ -208,7 +203,22 @@ int main(int argc, char** argv)
                 }
             }
         }
-        
+
+        std::vector< cv::Vec3d > tvecs = { 0 };
+        std::vector< cv::Vec3d > rvecs = { 0 };
+        float cm[9] = { 1.0100000e+03, 0.00000000e+00, 0.64000000e+03, 0.00000000e+00, 1.00000000e+03, 0.36000000e+03, 0.00000000e+00, 0.00000000e+00, 1.00000000e+00 };
+        float dc[5] = { 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00 };
+
+        cv::Mat cameraMatrix = cv::Mat(3, 3, CV_32FC1, cm);
+        //cv::Mat cameraMatrix = cv::Mat::eye(3, 3, CV_32FC1);
+        cv::Mat distCoeffs = cv::Mat(5, 1, CV_32FC1, dc);
+
+        cv::aruco::estimatePoseSingleMarkers(markerCornersRobots, 0.01, cameraMatrix, distCoeffs, rvecs, tvecs);
+
+        for (int i_robot = 0; i_robot < robots.size(); i_robot++)
+        {
+            cv::drawFrameAxes(outputImage, cameraMatrix, cv::Mat(), rvecs[i_robot], tvecs[i_robot], 0.01);
+        }
         time_point_2 = std::chrono::high_resolution_clock::now();
         float time_for_detect = std::chrono::duration_cast<std::chrono::milliseconds>(time_point_2 - time_point_1).count();
         float FPS = 1000 / time_for_detect;

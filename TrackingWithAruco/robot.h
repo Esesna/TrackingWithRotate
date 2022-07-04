@@ -15,16 +15,21 @@ class Robot
 {
 public:
 	cv::Scalar ColorDetect{ 255, 0, 0 };
-	Robot(int id, int n, cv::Rect bbox, cv::Mat& frame);
-	cv::Rect trackRobot(cv::Mat& frame);
+	Robot(int id, int n, cv::Rect bbox, cv::Mat& frame, std::vector<cv::Point2f> markerCorners);
+	cv::Rect trackRobot(cv::Mat& frame, cv::Mat& outImage);
 	int getId();
 	bool verify = false;
 	cv::Rect getPosition();
-	void initPosition(cv::Rect bbox, cv::Mat& fram);
+	void initPosition(cv::Rect bbox, cv::Mat& frame, std::vector<cv::Point2f> markerCorners);
 
 	float outFi = 0;
+
+	std::vector<cv::Point2f> p0, p1;
+	std::vector< cv::Vec3d > tvecs = { 0 };
+	std::vector< cv::Vec3d > rvecs = { 0 };
 private:
-	void trackerInit(int n, cv::Rect bbox, cv::Mat& frame);
+	bool pointInMU(std::vector<cv::Point2f> p, cv::Point2f pointS);
+	void trackerInit(int n, cv::Rect bbox, cv::Mat& frame, std::vector<cv::Point2f> markerCorners);
 	cv::Rect last_position;
 	int id;
 	cv::Ptr<cv::Tracker> tracker;
@@ -34,8 +39,8 @@ private:
 	cv::Mat old_frame;
 	cv::Point2f pBase = cv::Point2f(150, 0);
 	cv::Mat old_gray;
-	std::vector<cv::Point2f> p0, p1;
 	std::vector<float> dFi;
 	
+
 };
 

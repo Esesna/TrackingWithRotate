@@ -1,10 +1,10 @@
 #include "robot.h"
 #define M_PI 3.14159265358979323846
-Robot::Robot(int id, int n, cv::Rect bbox, cv::Mat& frame):
+Robot::Robot(int id, int n, cv::Rect bbox, cv::Mat& frame, std::vector<cv::Point2f> markerCorners):
     id(id), last_position(bbox)
 {
     //std::cout << "new robot: " << id << std::endl;
-    trackerInit(n, bbox, frame);
+    trackerInit(n, bbox, frame, markerCorners);
     cv::RNG rng;
     for (int i = 0; i < 100; i++)
     {
@@ -15,7 +15,7 @@ Robot::Robot(int id, int n, cv::Rect bbox, cv::Mat& frame):
     }
 }
 
-void Robot::trackerInit(int n, cv::Rect bbox, cv::Mat& frame)
+void Robot::trackerInit(int n, cv::Rect bbox, cv::Mat& frame, std::vector<cv::Point2f> markerCorners)
 {
     std::string trackerTypes[8] = { "MIL", "KCF", "GOTURN", "CSRT", "DaSiamRPN" };
     std::string trackerType = trackerTypes[n];
@@ -39,10 +39,10 @@ void Robot::trackerInit(int n, cv::Rect bbox, cv::Mat& frame)
     //bbox.height += dH * 2;
 
     tracker->init(frame, bbox);
-    initPosition(bbox, frame);
+    initPosition(bbox, frame, markerCorners);
 }
 
-void Robot::initPosition(cv::Rect bbox, cv::Mat& frame)
+void Robot::initPosition(cv::Rect bbox, cv::Mat& frame, std::vector<cv::Point2f> markerCorners)
 {
     old_frame = frame;
     last_position = bbox;
@@ -52,25 +52,17 @@ void Robot::initPosition(cv::Rect bbox, cv::Mat& frame)
 
     std::vector<cv::Point2f> p_temp;
     cv::cvtColor(frame, old_gray, cv::COLOR_BGR2GRAY);
-    cv::goodFeaturesToTrack(old_gray, p_temp, 100, 0.3, 7, cv::Mat(), 7, false, 0.04);
+    //cv::goodFeaturesToTrack(old_gray, p_temp, 100, 0.3, 3, cv::Mat(), 7, true, 0.04);
     p0 = {};
-    for (int i = 0; i < p_temp.size(); i++)
-    {
-        if ((
-                p_temp[i].x > bbox.x
-                and
-                p_temp[i].x < (bbox.x + bbox.width)
-            )
-            and
-            (
-                p_temp[i].y > bbox.y
-                and
-                p_temp[i].y < (bbox.y + bbox.height)
-            ))
-        {
-            p0.push_back(p_temp[i]);
-        }
-    }
+    //for (int i = 0; i < p_temp.size(); i++)
+    //{
+    //    if (pointInMU(markerCorners, p_temp[i]))
+    //    {
+    //        p0.push_back(p_temp[i]);
+    //    }
+    //}
+    p0 = markerCorners;
+    std::cout << "p0.size() = " << p0.size() << std::endl;
 
     pBase.x = 150;
     pBase.y = 0;
@@ -101,7 +93,7 @@ void Robot::initPosition(cv::Rect bbox, cv::Mat& frame)
     }
 }
 
-cv::Rect Robot::trackRobot(cv::Mat& frame)
+cv::Rect Robot::trackRobot(cv::Mat& frame, cv::Mat &outImage)
 {
     //int dW = last_position.width * 0.1;
     //int dH = last_position.height * 0.1;
@@ -160,17 +152,46 @@ cv::Rect Robot::trackRobot(cv::Mat& frame)
         std::vector<cv::Point2f> good_new;
         cv::Mat mask = cv::Mat::zeros(old_frame.size(), old_frame.type());
 
+        cv::Point2f centerAruco;
         for (uint i = 0; i < p0.size(); i++)
         {
             // Select good points
             if (status[i] == 1) {
                 good_new.push_back(p1[i]);
                 // draw the tracks
-                line(mask, p1[i], p0[i], colors[i], 2);
-                circle(frame, p1[i], 5, colors[i], -1);
+                //line(mask, p1[i], p0[i], colors[i], 2);
+                //circle(outImage, p1[i], 5, colors[i], -1);
             }
+            centerAruco.x += p1[i].x;
+            centerAruco.y += p1[i].y;
         }
-        add(frame, mask, frame);
+        centerAruco.x /= p1.size();
+        centerAruco.y /= p1.size();
+
+        //std::cout << "Angle: ";
+        for (uint i = 0; i < good_new.size(); i++)
+        {
+
+            cv::Point2f pTemptCos = p0[i];
+            pTemptCos.x -= centerAruco.x;
+            pTemptCos.y -= centerAruco.y;
+
+            float cosFi;
+            cosFi = (pBase.x * pTemptCos.x + pBase.y * pTemptCos.y);
+            cosFi /= sqrt(pBase.x * pBase.x + pBase.y * pBase.y);
+            cosFi /= sqrt(pTemptCos.x * pTemptCos.x + pTemptCos.y * pTemptCos.y);
+            float Fi = acos(cosFi) * 180 / M_PI;
+            if (pTemptCos.y < 0)
+            {
+                Fi = -Fi;
+            }
+            Fi += 180;
+            //std::cout << std::to_string(Fi) << " ";
+        }
+        //std::cout << std::endl;
+
+        //circle(outImage, centerAruco, 3, cv::Scalar(0, 0, 255), -1);
+        add(outImage, mask, outImage);
 
         // Now update the previous frame and previous points
         old_gray = frame_gray.clone();
@@ -201,4 +222,17 @@ int Robot::getId()
 cv::Rect Robot::getPosition()
 {
     return last_position;
+}
+
+bool Robot::pointInMU(std::vector<cv::Point2f> p, cv::Point2f pointS)
+{
+    bool result = false;
+    int j = p.size() - 1;
+    for (int i = 0; i < p.size(); i++) {
+        if ((p[i].y < pointS.y && p[j].y >= pointS.y || p[j].y < pointS.y && p[i].y >= pointS.y) &&
+            (p[i].x + (pointS.y - p[i].y) / (p[j].y - p[i].y) * (p[j].x - p[i].x) < pointS.x))
+            result = !result;
+        j = i;
+    }
+    return result;
 }

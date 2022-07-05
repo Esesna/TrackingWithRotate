@@ -40,7 +40,8 @@ private:
 	cv::Point2f pBase = cv::Point2f(150, 0);
 	cv::Mat old_gray;
 	std::vector<float> dFi;
-	
 
+	bool PSR(int tresh, cv::Mat& frame, cv::Rect bbox);
+	cv::Mat last_frame;
 };
 

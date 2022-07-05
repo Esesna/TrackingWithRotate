@@ -1,5 +1,8 @@
 #include "robot.h"
 #define M_PI 3.14159265358979323846
+
+cv::Rect2d convertCornersToRect1(std::vector<cv::Point2f> corners);
+
 Robot::Robot(int id, int n, cv::Rect bbox, cv::Mat& frame, std::vector<cv::Point2f> markerCorners):
     id(id), last_position(bbox)
 {
@@ -44,6 +47,7 @@ void Robot::trackerInit(int n, cv::Rect bbox, cv::Mat& frame, std::vector<cv::Po
 
 void Robot::initPosition(cv::Rect bbox, cv::Mat& frame, std::vector<cv::Point2f> markerCorners)
 {
+    last_frame = frame;
     old_frame = frame;
     last_position = bbox;
     tracker = cv::TrackerKCF::create();
@@ -95,21 +99,8 @@ void Robot::initPosition(cv::Rect bbox, cv::Mat& frame, std::vector<cv::Point2f>
 
 cv::Rect Robot::trackRobot(cv::Mat& frame, cv::Mat &outImage)
 {
-    //int dW = last_position.width * 0.1;
-    //int dH = last_position.height * 0.1;
-
-    //last_position.x         -= dW;
-    //last_position.y         -= dH;
-    //last_position.width     += dW * 2;
-    //last_position.height    += dH * 2;
-
     bool ok = tracker->update(frame, last_position);
-
-    //last_position.x         += dW;
-    //last_position.y         += dH;
-    //last_position.width     -= dW * 2;
-    //last_position.height    -= dH * 2;
-
+    //ok = PSR(10,frame, convertCornersToRect1(p0));
     if (ok)
     {
         cv::Mat frame_gray;
@@ -235,4 +226,72 @@ bool Robot::pointInMU(std::vector<cv::Point2f> p, cv::Point2f pointS)
         j = i;
     }
     return result;
+}
+
+cv::Rect2d convertCornersToRect1(std::vector<cv::Point2f> corners)
+{
+    double min_x = corners[0].x;
+    double min_y = corners[0].y;
+    double max_x = corners[0].x;
+    double max_y = corners[0].y;
+
+    for (int j = 1; j < 4; j++)
+    {
+
+        if (min_x > corners[j].x) min_x = corners[j].x;
+        if (max_x < corners[j].x) max_x = corners[j].x;
+
+        if (min_y > corners[j].y) min_y = corners[j].y;
+        if (max_y < corners[j].y) max_y = corners[j].y;
+
+    }
+
+    double widht = (max_x - min_x);
+    double height = (max_y - min_y);
+
+    cv::Rect2d bbox = cv::Rect2d{ min_x, min_y, widht, height };
+
+    return bbox;
+}
+bool Robot::PSR(int tresh, cv::Mat& frame, cv::Rect bbox)
+{
+    cv::Mat frame_gray;
+    cv::cvtColor(frame, frame_gray, cv::COLOR_BGR2GRAY);
+
+    cv::Mat F0 = (cv::Mat(old_gray, bbox) / 128) - 1;
+    cv::Mat F1 = (cv::Mat(frame_gray, bbox) / 128) - 1;
+    cv::GaussianBlur(F0, F0, cv::Size(7, 7), 0);
+    cv::GaussianBlur(F1, F1, cv::Size(7, 7), 0);
+
+    cv::Mat difF = F1 - F0;
+    cv::Mat G = difF.mul(difF);
+
+    double minVal;
+    double maxVal;//
+    cv::Point minLoc;
+    cv::Point maxLoc;//
+
+    cv::minMaxLoc(G, &minVal, &maxVal, &minLoc, &maxLoc);
+
+    double gMax = maxVal;
+    cv::Point LocMaxG = maxLoc;
+    LocMaxG.x -= 5;
+    LocMaxG.y -= 5;
+    G = cv::Mat(G, cv::Rect(LocMaxG.x, LocMaxG.y, 11, 11));
+
+    cv::Mat temp;
+
+    temp = G - maxVal;
+    temp = temp.mul(temp);
+
+    float Su = sqrt(cv::sum(temp)[0] / (temp.rows * temp.cols));
+
+    temp = G - maxVal;
+
+    float Ssig = cv::sum(temp)[0] / (temp.rows * temp.cols);
+
+    float PSRval = (gMax - Su) / Ssig;
+
+    if (PSRval > tresh) return true;
+    return false;
 }

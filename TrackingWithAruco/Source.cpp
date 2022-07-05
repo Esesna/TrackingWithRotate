@@ -127,11 +127,11 @@ int main(int argc, char** argv)
         Ptr<DetectorParameters> parameters = DetectorParameters::create();
         // Detect the markers in the image
 
-        if (countFrames % 30 == 0)
+        if (countFrames % 100 == 0)
         {
             detectMarkers(frame, dictionary, markerCorners, markerIds);//), rejectedCandidates);
         }
-        countFrames++;
+        //countFrames++;
         for (int i_robot = 0; i_robot < robots.size(); i_robot++)
         {
             cv::Rect tresh = robots[i_robot].trackRobot(frame, outputImage);

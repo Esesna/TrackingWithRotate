@@ -1,7 +1,58 @@
-﻿  robot.cpp
+﻿  Source.cpp
+G:\ProjectE\repos\TrackingWithRotate\TrackingWithAruco\Source.cpp(91,129): warning C4244: аргумент: преобразование "double" в "_Tp", возможна потеря данных
+          with
+          [
+              _Tp=int
+          ]
+G:\ProjectE\repos\TrackingWithRotate\TrackingWithAruco\Source.cpp(91,98): warning C4244: аргумент: преобразование "double" в "_Tp", возможна потеря данных
+          with
+          [
+              _Tp=int
+          ]
+G:\ProjectE\repos\TrackingWithRotate\TrackingWithAruco\Source.cpp(93,125): warning C4244: аргумент: преобразование "double" в "_Tp", возможна потеря данных
+          with
+          [
+              _Tp=int
+          ]
+G:\ProjectE\repos\TrackingWithRotate\TrackingWithAruco\Source.cpp(93,94): warning C4244: аргумент: преобразование "double" в "_Tp", возможна потеря данных
+          with
+          [
+              _Tp=int
+          ]
+G:\ProjectE\repos\TrackingWithRotate\TrackingWithAruco\Source.cpp(212,111): warning C4305: аргумент: усечение из "double" в "float"
+G:\ProjectE\repos\TrackingWithRotate\TrackingWithAruco\Source.cpp(216,105): warning C4305: аргумент: усечение из "double" в "float"
+G:\ProjectE\repos\TrackingWithRotate\TrackingWithAruco\Source.cpp(219,31): warning C4244: инициализация: преобразование "_Rep" в "float", возможна потеря данных
+          with
+          [
+              _Rep=__int64
+          ]
+  robot.cpp
+G:\ProjectE\repos\TrackingWithRotate\TrackingWithAruco\robot.cpp(91,18): warning C4244: инициализация: преобразование "double" в "float", возможна потеря данных
+G:\ProjectE\repos\TrackingWithRotate\TrackingWithAruco\robot.cpp(127,5): warning C4067: непредвиденные лексемы за директивой препроцессора, требуется newline
+G:\ProjectE\repos\TrackingWithRotate\TrackingWithAruco\robot.cpp(174,5): warning C4067: непредвиденные лексемы за директивой препроцессора, требуется newline
+G:\ProjectE\repos\TrackingWithRotate\TrackingWithAruco\robot.cpp(179,5): warning C4067: непредвиденные лексемы за директивой препроцессора, требуется newline
+G:\ProjectE\repos\TrackingWithRotate\TrackingWithAruco\robot.cpp(294,25): warning C4267: инициализация: преобразование из "size_t" в "int"; возможна потеря данных
+G:\ProjectE\repos\TrackingWithRotate\TrackingWithAruco\robot.cpp(360,14): warning C4244: инициализация: преобразование "double" в "float", возможна потеря данных
+G:\ProjectE\repos\TrackingWithRotate\TrackingWithAruco\robot.cpp(364,16): warning C4244: инициализация: преобразование "_Tp" в "float", возможна потеря данных
+          with
+          [
+              _Tp=double
+          ]
+G:\ProjectE\repos\TrackingWithRotate\TrackingWithAruco\robot.cpp(366,18): warning C4244: инициализация: преобразование "double" в "float", возможна потеря данных
+G:\ProjectE\repos\TrackingWithRotate\TrackingWithAruco\robot.cpp(383,26): warning C4244: инициализация: преобразование "int" в "float", возможна потеря данных
+G:\ProjectE\repos\TrackingWithRotate\TrackingWithAruco\robot.cpp(462,23): warning C4244: return: преобразование "float" в "int", возможна потеря данных
+G:\ProjectE\repos\TrackingWithRotate\TrackingWithAruco\robot.cpp(482,40): warning C4244: =: преобразование "_Ty" в "_Tp", возможна потеря данных
+          with
+          [
+              _Ty=float
+          ]
+          and
+          [
+              _Tp=int
+          ]
   Создание кода
-  4 of 463 functions ( 0.9%) were compiled, the rest were copied from previous compilation.
-    0 functions were new in current compilation
-    6 functions had inline decision re-evaluated but remain unchanged
+  250 of 836 functions (29.9%) were compiled, the rest were copied from previous compilation.
+    5 functions were new in current compilation
+    113 functions had inline decision re-evaluated but remain unchanged
   Создание кода завершено
-  TrackingWithAruco.vcxproj -> C:\Users\yarrr\source\repos\TrackingWithAruco\x64\Release\TrackingWithAruco.exe
+  TrackingWithAruco.vcxproj -> G:\ProjectE\repos\TrackingWithRotate\x64\Release\TrackingWithAruco.exe

@@ -10,6 +10,8 @@
 #include <opencv2/core.hpp>
 #include <opencv2/videoio.hpp>
 #include <opencv2/video.hpp>
+
+#define ANGLE_SEARCH false;
 //#include <opencv2/>
 class Robot
 {
@@ -22,6 +24,7 @@ public:
 	cv::Rect getPosition();
 	void initPosition(cv::Rect bbox, cv::Mat& frame, std::vector<cv::Point2f> markerCorners);
 
+
 	float outFi = 0;
 
 	std::vector<cv::Point2f> p0, p1;
@@ -30,6 +33,12 @@ public:
 private:
 	bool pointInMU(std::vector<cv::Point2f> p, cv::Point2f pointS);
 	void trackerInit(int n, cv::Rect bbox, cv::Mat& frame, std::vector<cv::Point2f> markerCorners);
+	
+	void initClass(cv::Rect bbox, cv::Mat& frame, std::vector<cv::Point2f> markerCorners);
+	bool checkClass(cv::Rect bbox, cv::Mat& frame, std::vector<cv::Point2f> markerCorners);
+	int DRC(cv::Mat& inputImg);
+	int parametrDrc;
+
 	cv::Rect last_position;
 	int id;
 	cv::Ptr<cv::Tracker> tracker;
@@ -42,6 +51,7 @@ private:
 	std::vector<float> dFi;
 
 	bool PSR(int tresh, cv::Mat& frame, cv::Rect bbox);
+	cv::Mat showGrahf(std::vector<float> inputVec, std::vector<cv::Scalar> color, cv::Mat inputMat, std::vector<int> fromTo);
 	cv::Mat last_frame;
 };
 

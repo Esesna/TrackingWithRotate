@@ -7,9 +7,9 @@
 #include <iostream>
 #include <chrono>
 
+#include <opencv2/highgui.hpp>
 #include <opencv2/aruco.hpp>
 #include <opencv2/imgproc.hpp>
-#include <opencv2/highgui.hpp>
 #include <opencv2/calib3d.hpp>
 
 #include "robot.h"
@@ -26,7 +26,9 @@ using namespace aruco;
 using namespace std;
 
 
+int countFrames = 0;
 Rect2d convertCornersToRect(vector<Point2f> corners);
+
 
 int main(int argc, char** argv)
 {
@@ -50,8 +52,9 @@ int main(int argc, char** argv)
 
     Mat frame, blob;
     
-    Mat im_src = imread("new_scenery.jpg");
+    //Mat im_src = imread("new_scenery.jpg");
 
+    outputFile = "ar_out_cpp.avi";
     try {
         
         outputFile = "ar_out_cpp.avi";
@@ -88,6 +91,7 @@ int main(int argc, char** argv)
     if (!parser.has("image")) {
         video.open(outputFile + ".avi", VideoWriter::fourcc('M', 'J', 'P', 'G'), 28, Size(cap.get(CAP_PROP_FRAME_WIDTH), cap.get(CAP_PROP_FRAME_HEIGHT)));
     }
+    video.open(outputFile + ".avi", VideoWriter::fourcc('M', 'J', 'P', 'G'), 28, Size(cap.get(CAP_PROP_FRAME_WIDTH), cap.get(CAP_PROP_FRAME_HEIGHT)));
     videoid0.open(outputFile + "_0.avi", VideoWriter::fourcc('M', 'J', 'P', 'G'), 28, Size(300, 300));
     videoid1.open(outputFile + "_1.avi", VideoWriter::fourcc('M', 'J', 'P', 'G'), 28, Size(300, 300));
     videoid2.open(outputFile + "_2.avi", VideoWriter::fourcc('M', 'J', 'P', 'G'), 28, Size(300, 300));
@@ -127,22 +131,16 @@ int main(int argc, char** argv)
         Ptr<DetectorParameters> parameters = DetectorParameters::create();
         // Detect the markers in the image
 
-        if (countFrames % 100 == 0)
+        if (countFrames == 0)
         {
-            detectMarkers(frame, dictionary, markerCorners, markerIds);//), rejectedCandidates);
+            detectMarkers(frame, dictionary, markerCorners, markerIds);
         }
-        //countFrames++;
+        countFrames++;
         for (int i_robot = 0; i_robot < robots.size(); i_robot++)
         {
             cv::Rect tresh = robots[i_robot].trackRobot(frame, outputImage);
         }
-        //cv::imshow(inWinName, frame);
 
-        //for (int i_robot = 0; i_robot < robots.size(); i_robot++)
-        //{
-        //    rectangle(outputImage, robots[i_robot].getPosition(), robots[i_robot].ColorDetect, 2, 1);
-        //}
-        //cv::drawFrameAxes(outputImage, cameraMatrix, distCoeffs, rvecs[0], tvecs[0], 0.01);
         for (int i_id = 0; i_id < markerIds.size(); i_id++)
         {
             bool newRobot = true;
@@ -182,6 +180,7 @@ int main(int argc, char** argv)
                 }
 
                 cv::Mat outROI = cv::Mat(frame, robots[i_robot].getPosition());
+
                 cv::resize(outROI, outROI, cv::Size(300,300));
                 switch (robots[i_robot].getId())
                 {
@@ -224,7 +223,8 @@ int main(int argc, char** argv)
         float FPS = 1000 / time_for_detect;
         cv::putText(outputImage, "FPS: " + std::to_string(FPS), cv::Point(100, 80), cv::FONT_HERSHEY_SIMPLEX, 0.75, cv::Scalar(0, 0, 255), 2);
         time_point_1 = std::chrono::high_resolution_clock::now();
-        
+
+        //cv::imwrite("./codes/main/main_" + std::to_string(countFrames) + ".jpg", outputImage);
         if (parser.has("image")) imwrite(outputFile, outputImage);
         else video.write(outputImage);
         cv::imshow(kWinName, outputImage);

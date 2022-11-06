@@ -1,7 +1,11 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <LocalDebuggerCommandArguments>--video="C:/Users/yarrr/Pictures/testAruco/video_2022-06-23_16-12-01.mp4"</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>--video=""C:/Users/User/Pictures/video_2022-06-30_22-51-32.mp4""</LocalDebuggerCommandArguments>
+    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseNotebook|x64'">
+    <LocalDebuggerCommandArguments>--video="C:/Users/yarrr/Pictures/video_2022-11-01_17-18-07.mp4"</LocalDebuggerCommandArguments>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
   </PropertyGroup>
 </Project>

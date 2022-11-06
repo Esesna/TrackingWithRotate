@@ -3,3 +3,7 @@
 ################################################################################
 
 /.vs/TrackingWithAruco
+/x64/Release
+
+/TrackingWithAruco/codes
+*.mp4
